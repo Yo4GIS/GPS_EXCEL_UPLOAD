@@ -37,11 +37,11 @@ namespace GeoEMS.Controllers
 
 
         public ActionResult DataEntry()
-        {            
+        {
             return View();
         }
 
-       
+
 
         public ActionResult Maintenance()
         {
@@ -53,7 +53,7 @@ namespace GeoEMS.Controllers
         {
             // Path to the Excel file inside your solution (change the path accordingly)
             string filePath = Server.MapPath("~/App_Data/template_load_data.xlsx"); // For "App_Data" folder
-                                                                        // string filePath = Server.MapPath("~/wwwroot/files/sample.xlsx"); // For "wwwroot/files" folder
+                                                                                    // string filePath = Server.MapPath("~/wwwroot/files/sample.xlsx"); // For "wwwroot/files" folder
 
             // Check if file exists
             if (!System.IO.File.Exists(filePath))
@@ -71,26 +71,31 @@ namespace GeoEMS.Controllers
 
 
         [HttpPost]
-        public async Task<ActionResult> ImportExcelFileAsync(HttpPostedFileBase excelFile) { 
-         
-        DataSet ds = new DataSet();
-            if (excelFile == null) {
-                Session["Error"] = "Please select valid file"; 
+        public async Task<ActionResult> ImportExcelFileAsync(HttpPostedFileBase excelFile)
+        {
+
+            DataSet ds = new DataSet();
+            if (excelFile == null)
+            {
+                Session["Error"] = "Please select valid file";
                 return RedirectToAction("DataEntry", "Home");
             }
             try
             {
                 string filename = null;
-                if (excelFile.ContentLength > 0) {
-                    if (excelFile.FileName.EndsWith(".xlsx")) {
+                if (excelFile.ContentLength > 0)
+                {
+                    if (excelFile.FileName.EndsWith(".xlsx"))
+                    {
                         XLWorkbook workbook;
                         try
                         {
                             workbook = new XLWorkbook(excelFile.InputStream);
                         }
-                        catch (Exception ex) {
+                        catch (Exception ex)
+                        {
                             TempData["Error"] = "An Error has been occured :" + ex.Message;
-                            return RedirectToAction("Index","Home");
+                            return RedirectToAction("Index", "Home");
                         }
 
                         IXLWorksheet worksheet = null;
@@ -98,18 +103,22 @@ namespace GeoEMS.Controllers
                         try
                         {
                             filename = Path.GetFileNameWithoutExtension(excelFile.FileName);
-                            if (workbook.Worksheets.Count > 0) {
+                            if (workbook.Worksheets.Count > 0)
+                            {
 
-                                for (int i = 1; i <= workbook.Worksheets.Count; i++) {
+                                for (int i = 1; i <= workbook.Worksheets.Count; i++)
+                                {
                                     var wb = workbook.Worksheet(i);
                                     worksheet = workbook.Worksheets.Worksheet(i);
                                     string sheetname = worksheet.Name;
                                     string SheetConfig = System.Configuration.ConfigurationManager.AppSettings["SheetConfig"].ToString();
-                                    if (wb != null && sheetname.Trim() == SheetConfig) {
-                                    DataTable dt = new DataTable();
+                                    if (wb != null && sheetname.Trim() == SheetConfig)
+                                    {
+                                        DataTable dt = new DataTable();
                                         bool firstrow = true;
 
-                                        foreach (IXLRow row in worksheet.RowsUsed()) {
+                                        foreach (IXLRow row in worksheet.RowsUsed())
+                                        {
                                             var rowNumber = row.RowNumber();
                                             if (firstrow)
                                             {
@@ -127,33 +136,38 @@ namespace GeoEMS.Controllers
                                                     string msg = ex.Message;
                                                 }
                                             }
-                                            else {
+                                            else
+                                            {
                                                 int d = 0;
                                                 DataRow toInsert = dt.NewRow();
-                                                foreach (IXLCell cell in row.Cells(1,dt.Columns.Count)) {
+                                                foreach (IXLCell cell in row.Cells(1, dt.Columns.Count))
+                                                {
                                                     try
                                                     {
-                                                        if (!string.IsNullOrEmpty(cell.Value.ToString())) {
+                                                        if (!string.IsNullOrEmpty(cell.Value.ToString()))
+                                                        {
                                                             toInsert[d] = cell.Value.ToString();
                                                         }
                                                     }
-                                                    catch (Exception ex) { 
-                                                    
+                                                    catch (Exception ex)
+                                                    {
+
                                                     }
                                                     d++;
                                                 }
                                                 dt.Rows.Add(toInsert);
                                             }
                                         }
-                                        ds.Tables.Add(dt);  
+                                        ds.Tables.Add(dt);
 
-                                        
+
                                     }
                                 }
 
                             }
                         }
-                        catch (Exception ex) {
+                        catch (Exception ex)
+                        {
                             TempData["Error"] = ex.ToString();
                             return RedirectToAction("DataEntry", "Home");
                         }
@@ -164,17 +178,20 @@ namespace GeoEMS.Controllers
                         return RedirectToAction("DataEntry", "Home");
                     }
                 }
-                else {
+                else
+                {
                     TempData["Error"] = "File Not Allowed";
                     return RedirectToAction("DataEntry", "Home");
                 }
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 TempData["Error"] = ex.ToString();
                 return RedirectToAction("DataEntry", "Home");
             }
 
-            if (ds.Tables.Count > 0) {
+            if (ds.Tables.Count > 0)
+            {
                 string SheetConfig = System.Configuration.ConfigurationManager.AppSettings["SheetConfig"].ToString();
                 EMSModel model = new EMSModel();
                 DataTable dataTable = ds.Tables[0];
@@ -189,7 +206,7 @@ namespace GeoEMS.Controllers
         [HttpGet]
         public ActionResult GetAllGpsData()
         {
-           IEnumerable<Gps_data> datas = new List<Gps_data>();
+            IEnumerable<Gps_data> datas = new List<Gps_data>();
             EMSModel model = new EMSModel();
             datas = model.Get_All_Gps_data();
 
@@ -216,7 +233,7 @@ namespace GeoEMS.Controllers
             EMSModel model = new EMSModel();
             datas = model.Get_All_Ticket_Master();
 
-            return Json( new { status = "success", Data = datas },JsonRequestBehavior.AllowGet );
+            return Json(new { status = "success", Data = datas }, JsonRequestBehavior.AllowGet);
         }
 
 
@@ -287,9 +304,9 @@ namespace GeoEMS.Controllers
                     string lng = sheet.Cells[row, 4].Text.Trim();
                     string gpsDate = sheet.Cells[row, 5].Text.Trim();
 
-                    ValidateRow(row, ticketNo, vehicleNo, lat, lng, gpsDate,ref errorRows);
-                    
-                       
+                    ValidateRow(row, ticketNo, vehicleNo, lat, lng, gpsDate, ref errorRows);
+
+
 
 
 
@@ -331,11 +348,11 @@ namespace GeoEMS.Controllers
                 tx.Commit();
 
 
-               
-                   
+
+
                 //}
 
-               
+
 
 
                 //using (var cmd = new NpgsqlCommand("SELECT ticket_no FROM y_mayur.ticket_master WHERE ticket_no = ANY(@tickets)", con))
@@ -352,12 +369,12 @@ namespace GeoEMS.Controllers
                 //    }
                 //}
 
-    //            duplicates = ticketList
-    //.Where(t => existingTickets.Contains(t))
-    //.Select(t => new TicketPreviewVM { TicketNo = t })
-    //.ToList();
+                //            duplicates = ticketList
+                //.Where(t => existingTickets.Contains(t))
+                //.Select(t => new TicketPreviewVM { TicketNo = t })
+                //.ToList();
 
-                foreach(string ticket in existingTickets)
+                foreach (string ticket in existingTickets)
                 {
                     ValidationErrorRow v1 = new ValidationErrorRow
                     {
@@ -589,13 +606,18 @@ namespace GeoEMS.Controllers
                 // 1️⃣ Convert Excel → CSV
                 string csvPath = ConvertExcelToCsv(excelPath, txnId);
 
+                List<string> uniqueTripIds = GetUniqueTripIdsFromCsv(csvPath);
+
+                // delete duplicates before insert
+                DeleteMultipleTrips(uniqueTripIds);
+
                 // 2️⃣ COPY to PostgreSQL
                 //ErrorMessage em1= CopyCsvToPostgres(csvPath);
                 ErrorMessage em1 = ImportExcelInChunks(excelPath, txnId);
                 if (em1.success)
                 {
-                    ErrorMessage em2=InsertIntoFinalTable(txnId);
-                    if(em2.success)
+                    ErrorMessage em2 = InsertIntoFinalTable(txnId);
+                    if (em2.success)
                     {
                         ErrorMessage em3 = InsertInTicketMaster(txnId);
 
@@ -610,14 +632,43 @@ namespace GeoEMS.Controllers
                 {
                     return Json(new { success = false, message = em1.errorMessage });
                 }
-                
-                
+
+
             }
-            catch(Exception ex)
+
+            catch (Exception ex)
             {
                 return Json(new { success = false, message = ex.Message });
             }
+
+
         }
+
+        private List<string> GetUniqueTripIdsFromCsv(string csvPath)
+        {
+            HashSet<string> uniqueTripIds = new HashSet<string>();
+
+            using (var reader = new StreamReader(csvPath))
+            {
+                bool isFirst = true; // skip header if exists
+
+                while (!reader.EndOfStream)
+                {
+                    var line = reader.ReadLine();
+
+                    if (isFirst) { isFirst = false; continue; }
+
+                    var values = line.Split(',');
+                    string tripId = values[1]?.Trim();  // change column index
+
+                    if (!string.IsNullOrEmpty(tripId) && !uniqueTripIds.Contains(tripId))
+                        uniqueTripIds.Add(tripId);
+                }
+            }
+
+            return uniqueTripIds.ToList();
+        }
+
 
         public ErrorMessage ImportExcelInChunks(string excelPath, Guid txnId)
         {
@@ -694,23 +745,23 @@ namespace GeoEMS.Controllers
                     }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 e1.success = false;
                 e1.errorMessage = ex.Message;
             }
 
             return e1;
-        
+
         }
-            
-        
+
+
 
 
         public ErrorMessage CopyCsvToPostgres(string csvPath)
         {
             ErrorMessage chk = new ErrorMessage();
-            
+
 
 
 
@@ -744,18 +795,18 @@ namespace GeoEMS.Controllers
                 chk.success = true;
                 chk.errorMessage = "Success";
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 chk.success = false;
-                chk.errorMessage ="CopyToDb:"+ ex.Message;
+                chk.errorMessage = "CopyToDb:" + ex.Message;
             }
             return chk;
         }
 
-        public string ConvertExcelToCsv(string excelPath,Guid txnId)
+        public string ConvertExcelToCsv(string excelPath, Guid txnId)
         {
             string csvPath = Path.ChangeExtension(excelPath, ".csv");
-            
+
             using (var package = new ExcelPackage(new FileInfo(excelPath)))
             using (var writer = new StreamWriter(csvPath))
             {
@@ -778,7 +829,7 @@ namespace GeoEMS.Controllers
                         logDate = dt.ToString("yyyy-MM-dd HH:mm:ss");
 
                     // txn_id is FIRST column
-                    string csvRow=$"{txnId},{ticketNo},{vehicleNo},{lat},{lng},{logDate}";
+                    string csvRow = $"{txnId},{ticketNo},{vehicleNo},{lat},{lng},{logDate}";
                     //writer.WriteLine(
                     //    $"\"{txnId}\",\"{ticketNo}\",\"{vehicleNo}\",\"{lat}\",\"{lng}\",\"{logDate}\""
                     //);
@@ -860,7 +911,7 @@ namespace GeoEMS.Controllers
 
                         lastCtid = nextCtid;
 
-                    } while(!string.IsNullOrEmpty(nextCtid));
+                    } while (!string.IsNullOrEmpty(nextCtid));
 
 
 
@@ -908,7 +959,7 @@ namespace GeoEMS.Controllers
                 chk.success = true;
                 chk.errorMessage = "Success";
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 chk.success = false;
                 chk.errorMessage = "InsertFinalTable:" + ex.Message;
@@ -941,11 +992,14 @@ namespace GeoEMS.Controllers
 ";
 
                     con.Execute(sql, new { txn_id = txnId });
+                    sql = "delete from y_mayur.gps_data_stg where txn_id='" + txnId + "';";
+                    con.Execute(sql);
                 }
+
                 e.success = true;
                 e.errorMessage = "";
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 e.success = false;
                 e.errorMessage = ex.Message;
@@ -1141,7 +1195,7 @@ namespace GeoEMS.Controllers
             {
                 totalTickets = result?.TotalTickets ?? 0,
                 totalVehicles = result?.TotalVehicles ?? 0,
-                totalGpsData= result1?.totalgps??0
+                totalGpsData = result1?.totalgps ?? 0
             }, JsonRequestBehavior.AllowGet);
         }
 
@@ -1164,14 +1218,14 @@ namespace GeoEMS.Controllers
                     try
                     {
                         // Delete from gps_data
-                        string sqlGps ="DELETE FROM y_mayur.gps_data " + "WHERE ticket_no IN (" + ids + ")";
+                        string sqlGps = "DELETE FROM y_mayur.gps_data " + "WHERE ticket_no IN (" + ids + ")";
 
                         conn.Execute(sqlGps, transaction: tran);
 
                         // Delete from ticket_master
-                        string sqlTicket ="DELETE FROM y_mayur.ticket_master " + "WHERE ticket_no IN (" + ids + ")";
+                        string sqlTicket = "DELETE FROM y_mayur.ticket_master " + "WHERE ticket_no IN (" + ids + ")";
 
-                        int a=conn.Execute(sqlTicket, transaction: tran);
+                        int a = conn.Execute(sqlTicket, transaction: tran);
 
                         tran.Commit();
                     }
